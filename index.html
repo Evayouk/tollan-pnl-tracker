@@ -236,6 +236,10 @@ async function fetchTransfers(address,action){
   const r=await fetch(BACKEND+'?address='+address+'&action='+action);
   const j=await r.json();
   if(action==='rewards')return j?.result||[];
+  async function fetchTransfers(address,action){
+  const r=await fetch(BACKEND+'?address='+address+'&action='+action);
+  const j=await r.json();
+  if(action==='rewards'||action==='sent')return j?.result||[];
   return j?.result?.transfers||[];
 }
 
