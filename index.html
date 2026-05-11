@@ -348,7 +348,7 @@ async function analyze() {
     for (const tx of sentTxs) {
       const val = parseFloat(tx.value || 0);
       if (val <= 0) continue;
-      allTxs.push({ type:'deposit', val, ts: tx.timestamp });
+      allTxs.push({ type:'deposit', val, ts: tx.timestamp ? new Date(tx.timestamp).toISOString() : null });
     }
 
     // Jackpots
