@@ -307,7 +307,7 @@ async function analyze(){
     const recvTxs=await fetchTransfers(address,'received');
     setTxt('Computing your PnL...');
     allTxs=[];
-    for(const tx of sentTxs){   const val=parseFloat(tx.value||0);   if(val<=0)continue;   const to=tx.to?.toLowerCase()||'';   if(to===C.DEPOSIT)allTxs.push({type:'deposit',val,ts:tx.timestamp}); }
+    for(const tx of sentTxs){const val=parseFloat(tx.value||0);if(val<=0)continue;allTxs.push({type:'deposit',val,ts:tx.timestamp});}
     for(const tx of recvTxs){const from=tx.from?.toLowerCase()||'';const val=parseFloat(tx.value||0);if(val<=0)continue;if(from===C.JACKPOT)allTxs.push({type:'jackpot',val,ts:tx.metadata?.blockTimestamp});}
     for(const r of rewardsList){if(r.value>0)allTxs.push({type:'reward',val:r.value,ts:r.timestamp});}
     const isAGW=raw.includes('.');
