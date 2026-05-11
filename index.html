@@ -253,7 +253,9 @@ async function fetchTransfers(address, action) {
 
 function inPeriod(ts, period) {
   if (period === 'all' || !ts) return true;
-  const d = new Date(ts), now = new Date();
+  const d = new Date(ts);
+  if (isNaN(d.getTime())) return false;
+  const now = new Date();
   if (period === 'week') return d >= new Date(now - 7*24*3600*1000);
   if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   return true;
