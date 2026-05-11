@@ -34,7 +34,7 @@ export default async function handler(req, res) {
         const key = tx.hash + tx.value;
         if (seen.has(key)) continue;
         seen.add(key);
-        if (tx.to?.toLowerCase() === DEPOSIT && parseInt(tx.value) > 0) {
+        if (tx.to?.toLowerCase() === DEPOSIT && parseInt(tx.value) >= 6900000000000000) {
           results.push({ value: parseInt(tx.value) / 1e18, timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(), hash: tx.hash });
         }
       }
