@@ -9,12 +9,12 @@ export default async function handler(req, res) {
 
   try {
     if (action === 'rewards') {
-      const url = `${ETHERSCAN}?chainid=2741&module=account&action=txlistinternal&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${APIKEY}`;
+      const url = `${ETHERSCAN}?chainid=2741&module=account&action=txlistinternal&address=${REWARDS}&startblock=0&endblock=99999999&sort=desc&apikey=${APIKEY}`;
       const r = await fetch(url);
       const data = await r.json();
       const results = [];
       for (const tx of (data.result || [])) {
-        if (tx.from?.toLowerCase() === REWARDS && parseInt(tx.value) > 0) {
+        if (tx.from?.toLowerCase() === REWARDS && tx.to?.toLowerCase() === address.toLowerCase() && parseInt(tx.value) > 0) {
           results.push({ value: parseInt(tx.value) / 1e18, timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(), hash: tx.hash });
         }
       }
