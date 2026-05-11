@@ -2,11 +2,12 @@ export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   const { address, action } = req.query;
   const ALCHEMY   = 'https://abstract-mainnet.g.alchemy.com/v2/qIG1PwQv9zTyyCproxF02';
-  const ABSCAN_KEY = 'SHMKKK45WQQ398P5IV8YAAF1WTNY6EZ67M';
+  const APIKEY    = 'SHMKKK45WQQ398P5IV8YAAF1WTNY6EZ67M';
+  const ETHERSCAN = 'https://api.etherscan.io/v2/api';
 
   try {
     if (action === 'rewards') {
-      const url = `https://api.abscan.org/api?module=account&action=txlistinternal&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${ABSCAN_KEY}&chainid=2741`;
+      const url = `${ETHERSCAN}?chainid=2741&module=account&action=txlistinternal&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${APIKEY}`;
       const r = await fetch(url);
       const data = await r.json();
       
