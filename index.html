@@ -1,172 +1,131 @@
 <!DOCTYPE html>
 <html lang="en">
 <head>
-<meta charset="UTF-8" />
-<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Tollan Universe — PnL Tracker</title>
 <style>
-  @import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@600;700;900&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
-  :root {
-    --blue:#4FC3F7;--blue2:#81D4FA;--blue-dim:rgba(79,195,247,0.12);--blue-dim2:rgba(79,195,247,0.25);
-    --gold:#FFD700;--gold-dim:rgba(255,215,0,0.12);
-    --green:#66BB6A;--green-dim:rgba(102,187,106,0.12);
-    --red:#EF5350;--red-dim:rgba(239,83,80,0.10);
-    --bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;
-    --border:rgba(79,195,247,0.12);--border2:rgba(79,195,247,0.25);
-    --text:#E8F4FD;--text2:#90A4AE;--text3:#455A64;
-    --r:10px;--rl:16px;
-  }
-  *{box-sizing:border-box;margin:0;padding:0}
-  body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh;overflow-x:hidden}
-
-  /* BG */
-  .bg-overlay{position:fixed;inset:0;background:linear-gradient(to bottom,rgba(10,14,26,0.85) 0%,rgba(10,14,26,0.97) 50%,#0a0e1a 100%);z-index:0;pointer-events:none}
-
-  /* BANNER */
-  .creator-banner{position:relative;z-index:10;background:rgba(17,24,39,0.95);border-bottom:1px solid var(--border);padding:6px 1.5rem;font-size:12px;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:5px;text-align:center}
-  .creator-banner a{color:var(--blue);text-decoration:none;font-weight:500}
-
-  /* HEADER */
-  header{position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);padding:0 1.5rem;height:62px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,26,0.96);backdrop-filter:blur(20px)}
-  .logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text)}
-  .logo-img{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 10px rgba(79,195,247,0.5))}
-  .logo-text{display:flex;flex-direction:column;line-height:1.1}
-  .logo-title{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--blue);letter-spacing:1px}
-  .logo-sub{font-size:10px;color:var(--text2);letter-spacing:2px;text-transform:uppercase}
-  .chain-badge{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--blue);font-family:'DM Mono',monospace;background:var(--blue-dim)}
-
-  /* HERO */
-  .hero{position:relative;z-index:1;text-align:center;padding:4rem 1.5rem 3rem;max-width:700px;margin:0 auto}
-  .hero-badge{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-family:'DM Mono',monospace;color:var(--blue);border:1px solid var(--border2);background:var(--blue-dim);padding:5px 16px;border-radius:20px;margin-bottom:1.5rem;letter-spacing:0.08em;text-transform:uppercase}
-  .live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
-  @keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
-  .hero h1{font-family:'Cinzel',serif;font-size:clamp(26px,5vw,46px);font-weight:900;line-height:1.1;margin-bottom:1rem;text-shadow:0 0 40px rgba(79,195,247,0.25)}
-  .hero h1 .t{color:var(--blue)}
-  .hero h1 .p{color:var(--gold)}
-  .hero p{font-size:15px;color:var(--text2);line-height:1.75;margin-bottom:2.5rem;max-width:480px;margin-left:auto;margin-right:auto}
-
-  /* SEARCH */
-  .search-wrap{max-width:540px;margin:0 auto 0.75rem}
-  .search-box{display:flex;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s}
-  .search-box:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,195,247,0.12)}
-  .search-box input{flex:1;padding:14px 18px;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px}
-  .search-box input::placeholder{color:var(--text3)}
-  .search-box button{margin:5px;padding:0 22px;background:linear-gradient(135deg,var(--blue),#0288D1);border:none;color:#000;font-family:'Cinzel',serif;font-size:13px;font-weight:700;cursor:pointer;border-radius:12px;transition:opacity 0.15s;white-space:nowrap;letter-spacing:0.5px}
-  .search-box button:hover{opacity:0.85}
-  .search-box button:disabled{opacity:0.4;cursor:not-allowed}
-  .search-hint{font-size:12px;color:var(--text3);text-align:center;margin-top:8px}
-
-  /* LOADING */
-  .loading{display:none;text-align:center;padding:4rem 2rem;position:relative;z-index:1}
-  .spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 1rem}
-  .loading-text{font-size:14px;color:var(--text2);margin-bottom:4px;font-family:'Cinzel',serif}
-  .loading-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
-  @keyframes spin{to{transform:rotate(360deg)}}
-
-  /* RESULTS */
-  .results{display:none;max-width:860px;margin:0 auto;padding:0 1.5rem 5rem;position:relative;z-index:1}
-  .error-banner{display:none;background:var(--red-dim);border:1px solid rgba(239,83,80,0.25);border-radius:var(--r);padding:1rem 1.25rem;font-size:13px;color:#f09090;margin-bottom:1.2rem;text-align:center}
-
-  /* WALLET */
-  .wallet-bar{display:flex;align-items:center;gap:14px;padding:1rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:1.5rem;flex-wrap:wrap}
-  .wallet-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#0288D1);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px}
-  .wallet-name{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;word-break:break-all}
-  .wallet-addr{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px}
-  .wallet-chain{margin-left:auto;font-size:11px;padding:4px 12px;border-radius:20px;background:var(--blue-dim);border:1px solid var(--border2);color:var(--blue);font-family:'DM Mono',monospace;white-space:nowrap}
-
-  /* PERIOD TABS */
-  .period-tabs{display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap}
-  .period-btn{padding:8px 20px;font-size:12px;font-family:'Cinzel',serif;font-weight:600;cursor:pointer;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:20px;transition:all 0.15s;letter-spacing:0.5px}
-  .period-btn.active{background:linear-gradient(135deg,var(--blue),#0288D1);color:#000;border-color:var(--blue)}
-  .period-btn:hover:not(.active){border-color:var(--border2);color:var(--text)}
-
-  /* METRICS */
-  .metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:1.5rem}
-  @media(max-width:600px){.metrics-grid{grid-template-columns:1fr}}
-  .metric-card{border-radius:var(--rl);padding:1.25rem 1.5rem;border:1px solid var(--border);position:relative;overflow:hidden}
-  .metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
-  .metric-card.deposits{background:linear-gradient(135deg,rgba(79,195,247,0.08),var(--bg2));border-color:var(--border2)}
-  .metric-card.deposits::before{background:linear-gradient(90deg,var(--blue),transparent)}
-  .metric-card.rewards{background:linear-gradient(135deg,rgba(102,187,106,0.08),var(--bg2));border-color:rgba(102,187,106,0.25)}
-  .metric-card.rewards::before{background:linear-gradient(90deg,var(--green),transparent)}
-  .metric-card.jackpots{background:linear-gradient(135deg,rgba(255,215,0,0.08),var(--bg2));border-color:rgba(255,215,0,0.25)}
-  .metric-card.jackpots::before{background:linear-gradient(90deg,var(--gold),transparent)}
-  .card-icon{font-size:28px;margin-bottom:10px}
-  .card-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;font-family:'DM Mono',monospace;margin-bottom:8px}
-  .metric-card.deposits .card-label{color:var(--blue)}
-  .metric-card.rewards .card-label{color:var(--green)}
-  .metric-card.jackpots .card-label{color:var(--gold)}
-  .card-eth{font-size:22px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;font-family:'DM Mono',monospace}
-  .metric-card.deposits .card-eth{color:var(--blue)}
-  .metric-card.rewards .card-eth{color:var(--green)}
-  .metric-card.jackpots .card-eth{color:var(--gold)}
-  .card-usd{font-size:13px;color:var(--text3);font-family:'DM Mono',monospace}
-  .card-count{font-size:11px;color:var(--text3);margin-top:6px}
-
-  /* PNL */
-  .pnl-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;position:relative;overflow:hidden}
-  .pnl-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--gold),var(--green))}
-  .pnl-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;font-family:'DM Mono',monospace;color:var(--text3);margin-bottom:8px}
-  .pnl-value{font-size:36px;font-weight:700;letter-spacing:-1px;font-family:'DM Mono',monospace}
-  .pnl-value.pos{color:var(--green)}
-  .pnl-value.neg{color:var(--red)}
-  .pnl-usd{font-size:14px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace}
-  .pnl-right{text-align:right}
-  .pnl-pct{font-size:28px;font-weight:700;font-family:'DM Mono',monospace}
-  .pnl-pct.pos{color:var(--green)}
-  .pnl-pct.neg{color:var(--red)}
-  .pnl-sub{font-size:12px;color:var(--text3);margin-top:4px}
-
-  /* TRANSACTIONS */
-  .section-title{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-family:'Cinzel',serif;color:var(--text3);margin-bottom:10px}
-  .tx-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1.5rem}
-  .tx-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:0.875rem 1rem;display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:12px;transition:border-color 0.15s}
-  .tx-card:hover{border-color:var(--border2)}
-  .tx-dot{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
-  .tx-dot.deposit{background:var(--blue-dim)}
-  .tx-dot.reward{background:var(--green-dim)}
-  .tx-dot.jackpot{background:var(--gold-dim)}
-  .tx-type{font-size:13px;font-weight:500}
-  .tx-time{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
-  .tx-eth{font-size:14px;font-weight:600;font-family:'DM Mono',monospace;text-align:right}
-  .tx-eth.out{color:var(--red)}
-  .tx-eth.in{color:var(--green)}
-  .tx-usd{font-size:11px;color:var(--text3);margin-top:2px;text-align:right;font-family:'DM Mono',monospace}
-  .empty-tx{text-align:center;padding:2.5rem;color:var(--text3);font-size:13px;border:1px dashed var(--border);border-radius:var(--rl)}
-
-  /* TIP */
-  .tip-card{margin-top:2rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem 1.5rem;display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap}
-  .tip-left{flex:1;min-width:180px}
-  .tip-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;font-family:'Cinzel',serif}
-  .tip-handle{font-size:12px;color:var(--blue);margin-bottom:5px;font-weight:500}
-  .tip-handle a{color:inherit;text-decoration:none}
-  .tip-handle a:hover{text-decoration:underline}
-  .tip-desc{font-size:12px;color:var(--text2)}
-  .tip-addr-wrap{flex:1;min-width:220px}
-  .tip-addr-label{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:6px}
-  .tip-addr-box{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);word-break:break-all;cursor:pointer;transition:all 0.15s}
-  .tip-addr-box:hover{border-color:var(--blue);color:var(--text)}
-  .tip-copy-hint{font-size:10px;color:var(--text3);margin-top:5px;text-align:center;font-family:'DM Mono',monospace;transition:color 0.2s}
-  .tip-copy-hint.copied{color:var(--green)}
-  .tip-network{font-size:10px;color:var(--text3);margin-top:3px;text-align:center;font-family:'DM Mono',monospace}
-  .disclaimer{margin-top:1.25rem;padding:0.875rem 1.25rem;background:var(--blue-dim);border:1px solid var(--border2);border-radius:var(--r);font-size:11px;color:var(--text3);text-align:center;line-height:1.7}
-  .disclaimer a{color:var(--blue);text-decoration:none}
-  footer{border-top:1px solid var(--border);padding:1.5rem;text-align:center;font-size:12px;color:var(--text3);line-height:1.8;position:relative;z-index:1}
-  footer a{color:var(--blue);text-decoration:none}
-  footer a:hover{text-decoration:underline}
+@import url('https://fonts.googleapis.com/css2?family=Cinzel:wght@700;900&family=DM+Sans:wght@400;500;600&family=DM+Mono:wght@400;500&display=swap');
+:root{--blue:#4FC3F7;--blue-dim:rgba(79,195,247,0.12);--blue-dim2:rgba(79,195,247,0.25);--gold:#FFD700;--gold-dim:rgba(255,215,0,0.12);--green:#66BB6A;--green-dim:rgba(102,187,106,0.12);--red:#EF5350;--red-dim:rgba(239,83,80,0.10);--bg:#0a0e1a;--bg2:#111827;--bg3:#1a2235;--border:rgba(79,195,247,0.12);--border2:rgba(79,195,247,0.25);--text:#E8F4FD;--text2:#90A4AE;--text3:#455A64;--r:10px;--rl:16px}
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);min-height:100vh}
+.bg-overlay{position:fixed;inset:0;background:linear-gradient(to bottom,rgba(10,14,26,0.85) 0%,rgba(10,14,26,0.97) 50%,#0a0e1a 100%);z-index:0;pointer-events:none}
+.creator-banner{position:relative;z-index:10;background:rgba(17,24,39,0.95);border-bottom:1px solid var(--border);padding:6px 1.5rem;font-size:12px;color:var(--text2);display:flex;align-items:center;justify-content:center;gap:5px;text-align:center}
+.creator-banner a{color:var(--blue);text-decoration:none;font-weight:500}
+header{position:sticky;top:0;z-index:100;border-bottom:1px solid var(--border);padding:0 1.5rem;height:62px;display:flex;align-items:center;justify-content:space-between;background:rgba(10,14,26,0.96);backdrop-filter:blur(20px)}
+.logo{display:flex;align-items:center;gap:12px;text-decoration:none;color:var(--text)}
+.logo-img{height:38px;width:auto;object-fit:contain;filter:drop-shadow(0 0 10px rgba(79,195,247,0.5))}
+.logo-text{display:flex;flex-direction:column;line-height:1.1}
+.logo-title{font-family:'Cinzel',serif;font-size:15px;font-weight:700;color:var(--blue);letter-spacing:1px}
+.logo-sub{font-size:10px;color:var(--text2);letter-spacing:2px;text-transform:uppercase}
+.chain-badge{font-size:11px;padding:4px 12px;border-radius:20px;border:1px solid var(--border2);color:var(--blue);font-family:'DM Mono',monospace;background:var(--blue-dim)}
+.hero{position:relative;z-index:1;text-align:center;padding:4rem 1.5rem 3rem;max-width:700px;margin:0 auto}
+.hero-badge{display:inline-flex;align-items:center;gap:8px;font-size:11px;font-family:'DM Mono',monospace;color:var(--blue);border:1px solid var(--border2);background:var(--blue-dim);padding:5px 16px;border-radius:20px;margin-bottom:1.5rem;letter-spacing:0.08em;text-transform:uppercase}
+.live-dot{width:6px;height:6px;border-radius:50%;background:var(--green);animation:pulse 1.5s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:0.3}}
+.hero h1{font-family:'Cinzel',serif;font-size:clamp(26px,5vw,46px);font-weight:900;line-height:1.1;margin-bottom:1rem}
+.hero h1 .t{color:var(--blue)}
+.hero h1 .p{color:var(--gold)}
+.hero p{font-size:15px;color:var(--text2);line-height:1.75;margin-bottom:2.5rem;max-width:480px;margin-left:auto;margin-right:auto}
+.search-wrap{max-width:540px;margin:0 auto 0.75rem}
+.search-box{display:flex;background:var(--bg2);border:1px solid var(--border2);border-radius:var(--rl);overflow:hidden;transition:border-color 0.2s,box-shadow 0.2s}
+.search-box:focus-within{border-color:var(--blue);box-shadow:0 0 0 3px rgba(79,195,247,0.12)}
+.search-box input{flex:1;padding:14px 18px;background:transparent;border:none;outline:none;color:var(--text);font-family:'DM Sans',sans-serif;font-size:14px}
+.search-box input::placeholder{color:var(--text3)}
+.search-box button{margin:5px;padding:0 22px;background:linear-gradient(135deg,var(--blue),#0288D1);border:none;color:#000;font-family:'Cinzel',serif;font-size:13px;font-weight:700;cursor:pointer;border-radius:12px;transition:opacity 0.15s;white-space:nowrap;letter-spacing:0.5px}
+.search-box button:hover{opacity:0.85}
+.search-box button:disabled{opacity:0.4;cursor:not-allowed}
+.search-hint{font-size:12px;color:var(--text3);text-align:center;margin-top:8px}
+.loading{display:none;text-align:center;padding:4rem 2rem;position:relative;z-index:1}
+.spinner{width:40px;height:40px;border:3px solid var(--border2);border-top-color:var(--blue);border-radius:50%;animation:spin 0.7s linear infinite;margin:0 auto 1rem}
+.loading-text{font-size:14px;color:var(--text2);margin-bottom:4px;font-family:'Cinzel',serif}
+.loading-sub{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace}
+@keyframes spin{to{transform:rotate(360deg)}}
+.results{display:none;max-width:860px;margin:0 auto;padding:0 1.5rem 5rem;position:relative;z-index:1}
+.error-banner{display:none;background:var(--red-dim);border:1px solid rgba(239,83,80,0.25);border-radius:var(--r);padding:1rem 1.25rem;font-size:13px;color:#f09090;margin-bottom:1.2rem;text-align:center}
+.wallet-bar{display:flex;align-items:center;gap:14px;padding:1rem 1.25rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);margin-bottom:1.5rem;flex-wrap:wrap}
+.wallet-avatar{width:40px;height:40px;border-radius:50%;background:linear-gradient(135deg,var(--blue),#0288D1);flex-shrink:0;display:flex;align-items:center;justify-content:center;font-size:18px}
+.wallet-name{font-size:13px;font-weight:600;font-family:'DM Mono',monospace;word-break:break-all}
+.wallet-addr{font-size:11px;color:var(--text3);font-family:'DM Mono',monospace;margin-top:2px}
+.wallet-chain{margin-left:auto;font-size:11px;padding:4px 12px;border-radius:20px;background:var(--blue-dim);border:1px solid var(--border2);color:var(--blue);font-family:'DM Mono',monospace;white-space:nowrap}
+.period-tabs{display:flex;gap:6px;margin-bottom:1.5rem;flex-wrap:wrap}
+.period-btn{padding:8px 20px;font-size:12px;font-family:'Cinzel',serif;font-weight:600;cursor:pointer;color:var(--text2);background:var(--bg2);border:1px solid var(--border);border-radius:20px;transition:all 0.15s;letter-spacing:0.5px}
+.period-btn.active{background:linear-gradient(135deg,var(--blue),#0288D1);color:#000;border-color:var(--blue)}
+.period-btn:hover:not(.active){border-color:var(--border2);color:var(--text)}
+.metrics-grid{display:grid;grid-template-columns:repeat(3,1fr);gap:14px;margin-bottom:1.5rem}
+@media(max-width:600px){.metrics-grid{grid-template-columns:1fr}}
+.metric-card{border-radius:var(--rl);padding:1.25rem 1.5rem;border:1px solid var(--border);position:relative;overflow:hidden}
+.metric-card::before{content:'';position:absolute;top:0;left:0;right:0;height:2px}
+.metric-card.deposits{background:linear-gradient(135deg,rgba(79,195,247,0.08),var(--bg2));border-color:var(--border2)}
+.metric-card.deposits::before{background:linear-gradient(90deg,var(--blue),transparent)}
+.metric-card.rewards{background:linear-gradient(135deg,rgba(102,187,106,0.08),var(--bg2));border-color:rgba(102,187,106,0.25)}
+.metric-card.rewards::before{background:linear-gradient(90deg,var(--green),transparent)}
+.metric-card.jackpots{background:linear-gradient(135deg,rgba(255,215,0,0.08),var(--bg2));border-color:rgba(255,215,0,0.25)}
+.metric-card.jackpots::before{background:linear-gradient(90deg,var(--gold),transparent)}
+.card-icon{font-size:28px;margin-bottom:10px}
+.card-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;font-family:'DM Mono',monospace;margin-bottom:8px}
+.metric-card.deposits .card-label{color:var(--blue)}
+.metric-card.rewards .card-label{color:var(--green)}
+.metric-card.jackpots .card-label{color:var(--gold)}
+.card-eth{font-size:22px;font-weight:700;letter-spacing:-0.5px;margin-bottom:4px;font-family:'DM Mono',monospace}
+.metric-card.deposits .card-eth{color:var(--blue)}
+.metric-card.rewards .card-eth{color:var(--green)}
+.metric-card.jackpots .card-eth{color:var(--gold)}
+.card-usd{font-size:13px;color:var(--text3);font-family:'DM Mono',monospace}
+.card-count{font-size:11px;color:var(--text3);margin-top:6px}
+.pnl-bar{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.5rem;margin-bottom:1.5rem;display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:1rem;position:relative;overflow:hidden}
+.pnl-bar::before{content:'';position:absolute;top:0;left:0;right:0;height:2px;background:linear-gradient(90deg,var(--blue),var(--gold),var(--green))}
+.pnl-label{font-size:10px;text-transform:uppercase;letter-spacing:0.1em;font-family:'DM Mono',monospace;color:var(--text3);margin-bottom:8px}
+.pnl-value{font-size:36px;font-weight:700;letter-spacing:-1px;font-family:'DM Mono',monospace}
+.pnl-value.pos{color:var(--green)}
+.pnl-value.neg{color:var(--red)}
+.pnl-usd{font-size:14px;color:var(--text3);margin-top:4px;font-family:'DM Mono',monospace}
+.pnl-right{text-align:right}
+.pnl-pct{font-size:28px;font-weight:700;font-family:'DM Mono',monospace}
+.pnl-pct.pos{color:var(--green)}
+.pnl-pct.neg{color:var(--red)}
+.pnl-sub{font-size:12px;color:var(--text3);margin-top:4px}
+.section-title{font-size:11px;text-transform:uppercase;letter-spacing:0.1em;font-family:'Cinzel',serif;color:var(--text3);margin-bottom:10px}
+.tx-list{display:flex;flex-direction:column;gap:6px;margin-bottom:1.5rem}
+.tx-card{background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:0.875rem 1rem;display:grid;grid-template-columns:36px 1fr auto;align-items:center;gap:12px;transition:border-color 0.15s}
+.tx-card:hover{border-color:var(--border2)}
+.tx-dot{width:36px;height:36px;border-radius:10px;display:flex;align-items:center;justify-content:center;font-size:16px;flex-shrink:0}
+.tx-dot.deposit{background:var(--blue-dim)}
+.tx-dot.reward{background:var(--green-dim)}
+.tx-dot.jackpot{background:var(--gold-dim)}
+.tx-type{font-size:13px;font-weight:500}
+.tx-time{font-size:11px;color:var(--text3);margin-top:2px;font-family:'DM Mono',monospace}
+.tx-eth{font-size:14px;font-weight:600;font-family:'DM Mono',monospace;text-align:right}
+.tx-eth.out{color:var(--red)}
+.tx-eth.in{color:var(--green)}
+.tx-usd{font-size:11px;color:var(--text3);margin-top:2px;text-align:right;font-family:'DM Mono',monospace}
+.empty-tx{text-align:center;padding:2.5rem;color:var(--text3);font-size:13px;border:1px dashed var(--border);border-radius:var(--rl)}
+.tip-card{margin-top:2rem;background:var(--bg2);border:1px solid var(--border);border-radius:var(--rl);padding:1.25rem 1.5rem;display:flex;align-items:flex-start;gap:1.5rem;flex-wrap:wrap}
+.tip-left{flex:1;min-width:180px}
+.tip-title{font-size:14px;font-weight:600;color:var(--text);margin-bottom:4px;font-family:'Cinzel',serif}
+.tip-handle{font-size:12px;color:var(--blue);margin-bottom:5px;font-weight:500}
+.tip-handle a{color:inherit;text-decoration:none}
+.tip-handle a:hover{text-decoration:underline}
+.tip-desc{font-size:12px;color:var(--text2)}
+.tip-addr-wrap{flex:1;min-width:220px}
+.tip-addr-label{font-size:10px;text-transform:uppercase;letter-spacing:0.07em;color:var(--text3);font-family:'DM Mono',monospace;margin-bottom:6px}
+.tip-addr-box{background:var(--bg3);border:1px solid var(--border2);border-radius:var(--r);padding:10px 12px;font-family:'DM Mono',monospace;font-size:11px;color:var(--text2);word-break:break-all;cursor:pointer;transition:all 0.15s}
+.tip-addr-box:hover{border-color:var(--blue);color:var(--text)}
+.tip-copy-hint{font-size:10px;color:var(--text3);margin-top:5px;text-align:center;font-family:'DM Mono',monospace;transition:color 0.2s}
+.tip-copy-hint.copied{color:var(--green)}
+.disclaimer{margin-top:1.25rem;padding:0.875rem 1.25rem;background:var(--blue-dim);border:1px solid var(--border2);border-radius:var(--r);font-size:11px;color:var(--text3);text-align:center;line-height:1.7}
+.disclaimer a{color:var(--blue);text-decoration:none}
+footer{border-top:1px solid var(--border);padding:1.5rem;text-align:center;font-size:12px;color:var(--text3);line-height:1.8;position:relative;z-index:1}
+footer a{color:var(--blue);text-decoration:none}
+footer a:hover{text-decoration:underline}
 </style>
 </head>
 <body>
-
 <div class="bg-overlay"></div>
-
-<div class="creator-banner">
-  ⚔️ Tool created by <a href="https://x.com/Not_Evayouk" target="_blank">@Evayouk</a> — a community member, for the community
-</div>
-
+<div class="creator-banner">⚔️ Tool created by <a href="https://x.com/Not_Evayouk" target="_blank">@Evayouk</a> — a community member, for the community</div>
 <header>
   <a class="logo" href="#">
-    <img class="logo-img" src="Tollan_Universe_main_thumbnail_5f527934ae.jpg" alt="Tollan Universe" />
+    <img class="logo-img" src="Tollan_Universe_main_thumbnail_5f527934ae.jpg" alt="Tollan Universe" onerror="this.style.display='none'"/>
     <div class="logo-text">
       <span class="logo-title">Tollan Universe</span>
       <span class="logo-sub">PnL Tracker</span>
@@ -174,32 +133,25 @@
   </a>
   <div class="chain-badge">Abstract · Chain 2741</div>
 </header>
-
 <div class="hero">
-  <div class="hero-badge">
-    <div class="live-dot"></div>
-    Live On-Chain Data · Abstract 2741
-  </div>
+  <div class="hero-badge"><div class="live-dot"></div>Live On-Chain Data · Abstract 2741</div>
   <h1><span class="t">TOLLAN</span><br/><span class="p">PnL</span> DASHBOARD</h1>
   <p>Enter your wallet address or AGW username to track your real deposits, weekly leaderboard rewards and chest jackpots on Tollan Universe.</p>
   <div class="search-wrap">
     <div class="search-box">
-      <input type="text" id="addrInput" placeholder="0x address or AGW name  (e.g. dan.agw)" />
+      <input type="text" id="addrInput" placeholder="0x address or AGW name (e.g. dan.agw)"/>
       <button id="analyzeBtn" onclick="analyze()">ANALYZE →</button>
     </div>
   </div>
   <div class="search-hint">Enter your wallet to see your real PnL</div>
 </div>
-
 <div class="loading" id="loadingEl">
   <div class="spinner"></div>
   <div class="loading-text" id="loadingText">Reading the blockchain...</div>
-  <div class="loading-sub" id="loadingSub">Abstract chain 2741 · Powered by Alchemy</div>
+  <div class="loading-sub" id="loadingSub">Abstract chain 2741</div>
 </div>
-
 <div class="results" id="resultsEl">
   <div class="error-banner" id="errorBanner"></div>
-
   <div class="wallet-bar">
     <div class="wallet-avatar">⚔️</div>
     <div>
@@ -208,13 +160,11 @@
     </div>
     <div class="wallet-chain">Tollan Universe · Chain 2741</div>
   </div>
-
   <div class="period-tabs">
     <button class="period-btn active" onclick="setPeriod('all',this)">ALL TIME</button>
     <button class="period-btn" onclick="setPeriod('month',this)">THIS MONTH</button>
     <button class="period-btn" onclick="setPeriod('week',this)">THIS WEEK</button>
   </div>
-
   <div class="metrics-grid">
     <div class="metric-card deposits">
       <div class="card-icon">💎</div>
@@ -238,7 +188,6 @@
       <div class="card-count" id="jackpotCount">0 chests claimed</div>
     </div>
   </div>
-
   <div class="pnl-bar">
     <div>
       <div class="pnl-label">Net PnL · Rewards + Jackpots − Deposits</div>
@@ -250,10 +199,8 @@
       <div class="pnl-sub">return on deposit</div>
     </div>
   </div>
-
   <div class="section-title">⚔️ Recent Transactions</div>
   <div class="tx-list" id="txList"></div>
-
   <div class="tip-card">
     <div class="tip-left">
       <div class="tip-title">⚔️ Support the Creator</div>
@@ -264,209 +211,124 @@
       <div class="tip-addr-label">Tip Address · Abstract Network</div>
       <div class="tip-addr-box" onclick="copyTip()">0xDdA88b48eC478309daDC3A5E28c6f619183e797f</div>
       <div class="tip-copy-hint" id="copyHint">click to copy</div>
-      <div class="tip-network">Abstract network</div>
     </div>
   </div>
-
-  <div class="disclaimer">
-    Data sourced live from Abstract chain via <a href="https://alchemy.com" target="_blank">Alchemy</a> · Chain ID 2741 ·
-    Not affiliated with Tollan Universe · Not financial advice
-  </div>
+  <div class="disclaimer">Data sourced live from Abstract chain · Chain ID 2741 · Not affiliated with Tollan Universe · Not financial advice</div>
 </div>
-
 <footer>
-  Tollan Universe PnL Tracker · Built by <a href="https://x.com/Not_Evayouk" target="_blank">@Evayouk</a>
-  for the <a href="https://abs.xyz" target="_blank">Abstract</a> community ·
-  <a href="https://hub.tollan.io" target="_blank">Play Tollan Universe</a><br/>
-  <span style="font-size:11px;">Live data · Chain 2741 · Powered by Alchemy</span>
+  Tollan Universe PnL Tracker · Built by <a href="https://x.com/Not_Evayouk" target="_blank">@Evayouk</a> for the <a href="https://abs.xyz" target="_blank">Abstract</a> community · <a href="https://hub.tollan.io" target="_blank">Play Tollan Universe</a>
 </footer>
-
 <script>
-const C = {
-  DEPOSIT: '0xa688a6a53a26b6f0702a9a518482151415be1ff7',
-  REWARDS: '0x3e3645a8f76c0436739b1cd6262d8b64afa90941',
-  JACKPOT: '0x6f7cdd84dbc0f56f73651a7ee4a65ad7ab9241be',
-};
+const C={DEPOSIT:'0xa688a6a53a26b6f0702a9a518482151415be1ff7',JACKPOT:'0x6f7cdd84dbc0f56f73651a7ee4a65ad7ab9241be'};
+const BACKEND='https://tollan-pnl-tracker.vercel.app/api/abscan';
+const TIP='0xDdA88b48eC478309daDC3A5E28c6f619183e797f';
+let ETH_PRICE=2335,allTxs=[],currentPeriod='all';
 
-const BACKEND     = 'https://tollan-pnl-tracker.vercel.app/api/abscan';
-const TIP_ADDRESS = '0xDdA88b48eC478309daDC3A5E28c6f619183e797f';
-let ETH_PRICE = 2335;
-let allTxs = [];
-let currentPeriod = 'all';
+async function fetchEthPrice(){try{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');const j=await r.json();if(j.ethereum?.usd)ETH_PRICE=j.ethereum.usd;}catch(e){}}
 
-async function fetchEthPrice() {
-  try {
-    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
-    const j = await r.json();
-    if (j.ethereum?.usd) ETH_PRICE = j.ethereum.usd;
-  } catch(e) {}
-}
-
-async function resolveAddress(input) {
-  if (input.startsWith('0x') && input.length >= 40) return input;
-  try {
-    const name = input.replace('.agw','').toLowerCase();
-    const r = await fetch(`https://api.abs.xyz/v1/accounts?username=${encodeURIComponent(name)}`);
-    if (r.ok) { const j = await r.json(); if (j.address) return j.address; }
-  } catch(e) {}
+async function resolveAddress(input){
+  if(input.startsWith('0x')&&input.length>=40)return input;
+  try{const name=input.replace('.agw','').toLowerCase();const r=await fetch('https://api.abs.xyz/v1/accounts?username='+encodeURIComponent(name));if(r.ok){const j=await r.json();if(j.address)return j.address;}}catch(e){}
   return input;
 }
 
-async function fetchTransfers(address, action) {
-  const r = await fetch(`${BACKEND}?address=${address}&action=${action}`);
-  const j = await r.json();
-  return j?.result?.transfers || [];
+async function fetchTransfers(address,action){
+  const r=await fetch(BACKEND+'?address='+address+'&action='+action);
+  const j=await r.json();
+  if(action==='rewards')return j?.result||[];
+  return j?.result?.transfers||[];
 }
 
-function inPeriod(dateStr, period) {
-  if (period === 'all' || !dateStr) return true;
-  const d = new Date(dateStr);
-  const now = new Date();
-  if (period === 'week') return d >= new Date(now - 7*24*3600*1000);
-  if (period === 'month') return d.getMonth()===now.getMonth() && d.getFullYear()===now.getFullYear();
+function inPeriod(ts,period){
+  if(period==='all'||!ts)return true;
+  const d=new Date(ts),now=new Date();
+  if(period==='week')return d>=new Date(now-7*24*3600*1000);
+  if(period==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
   return true;
 }
 
-function timeAgo(dateStr) {
-  if (!dateStr) return '—';
-  const diff = Math.floor((Date.now() - new Date(dateStr))/1000);
-  if (diff < 60)    return diff+'s ago';
-  if (diff < 3600)  return Math.floor(diff/60)+'m ago';
-  if (diff < 86400) return Math.floor(diff/3600)+'h ago';
+function timeAgo(ts){
+  if(!ts)return'—';
+  const diff=Math.floor((Date.now()-new Date(ts))/1000);
+  if(diff<60)return diff+'s ago';
+  if(diff<3600)return Math.floor(diff/60)+'m ago';
+  if(diff<86400)return Math.floor(diff/3600)+'h ago';
   return Math.floor(diff/86400)+'d ago';
 }
 
-function usd(v) {
-  return '$'+(v*ETH_PRICE).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});
-}
+function usd(v){return'$'+(v*ETH_PRICE).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
 
-function render(period) {
-  const filtered = allTxs.filter(tx => inPeriod(tx.ts, period));
-  let totalDeposit=0,depositCount=0,totalRewards=0,rewardCount=0,totalJackpots=0,jackpotCount=0;
-  for (const tx of filtered) {
-    if (tx.type==='deposit'){totalDeposit+=tx.val;depositCount++}
-    if (tx.type==='reward') {totalRewards+=tx.val;rewardCount++}
-    if (tx.type==='jackpot'){totalJackpots+=tx.val;jackpotCount++}
-  }
-  const totalIn=totalRewards+totalJackpots;
-  const netPnl=parseFloat((totalIn-totalDeposit).toFixed(6));
-  const pct=totalDeposit>0?parseFloat((netPnl/totalDeposit*100).toFixed(1)):0;
-  const sign=netPnl>=0?'+':'';
-  const cls=netPnl>=0?'pos':'neg';
-
-  document.getElementById('totalDeposit').textContent    = totalDeposit.toFixed(4)+' ETH';
-  document.getElementById('totalDepositUsd').textContent = usd(totalDeposit);
-  document.getElementById('depositCount').textContent    = depositCount+' transaction'+(depositCount!==1?'s':'');
-  document.getElementById('totalRewards').textContent    = totalRewards.toFixed(4)+' ETH';
-  document.getElementById('totalRewardsUsd').textContent = usd(totalRewards);
-  document.getElementById('rewardCount').textContent     = rewardCount+' weekly payout'+(rewardCount!==1?'s':'');
-  document.getElementById('totalJackpots').textContent   = totalJackpots.toFixed(4)+' ETH';
-  document.getElementById('totalJackpotsUsd').textContent= usd(totalJackpots);
-  document.getElementById('jackpotCount').textContent    = jackpotCount+' chest'+(jackpotCount!==1?'s':'')+' claimed';
-
+function render(period){
+  const f=allTxs.filter(tx=>inPeriod(tx.ts,period));
+  let td=0,dc=0,tr=0,rc=0,tj=0,jc=0;
+  for(const tx of f){if(tx.type==='deposit'){td+=tx.val;dc++;}if(tx.type==='reward'){tr+=tx.val;rc++;}if(tx.type==='jackpot'){tj+=tx.val;jc++;}}
+  const net=parseFloat((tr+tj-td).toFixed(6));
+  const pct=td>0?parseFloat((net/td*100).toFixed(1)):0;
+  const sign=net>=0?'+':'';const cls=net>=0?'pos':'neg';
+  document.getElementById('totalDeposit').textContent=td.toFixed(4)+' ETH';
+  document.getElementById('totalDepositUsd').textContent=usd(td);
+  document.getElementById('depositCount').textContent=dc+' transaction'+(dc!==1?'s':'');
+  document.getElementById('totalRewards').textContent=tr.toFixed(4)+' ETH';
+  document.getElementById('totalRewardsUsd').textContent=usd(tr);
+  document.getElementById('rewardCount').textContent=rc+' weekly payout'+(rc!==1?'s':'');
+  document.getElementById('totalJackpots').textContent=tj.toFixed(4)+' ETH';
+  document.getElementById('totalJackpotsUsd').textContent=usd(tj);
+  document.getElementById('jackpotCount').textContent=jc+' chest'+(jc!==1?'s':'')+' claimed';
   const pnlEl=document.getElementById('netPnl');
   const pctEl=document.getElementById('netPnlPct');
-  pnlEl.textContent=sign+netPnl.toFixed(4)+' ETH';
-  pnlEl.className='pnl-value '+cls;
-  document.getElementById('netPnlUsd').textContent=sign+usd(Math.abs(netPnl));
-  pctEl.textContent=sign+pct.toFixed(1)+'%';
-  pctEl.className='pnl-pct '+cls;
-
+  pnlEl.textContent=sign+net.toFixed(4)+' ETH';pnlEl.className='pnl-value '+cls;
+  document.getElementById('netPnlUsd').textContent=sign+usd(Math.abs(net));
+  pctEl.textContent=sign+pct.toFixed(1)+'%';pctEl.className='pnl-pct '+cls;
   const icons={deposit:'💎',reward:'🏆',jackpot:'🎰'};
   const labels={deposit:'Deposit (Crowns/Pass/Badge)',reward:'Weekly Leaderboard Reward',jackpot:'Chest Jackpot Claimed'};
+  const sorted=[...f].sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
   const txList=document.getElementById('txList');
-  const sorted=[...filtered].sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
-
-  if (!sorted.length) {
-    txList.innerHTML='<div class="empty-tx">No Tollan transactions found for this period.</div>';
-  } else {
-    txList.innerHTML=sorted.slice(0,30).map(tx=>{
-      const amtCls=tx.type==='deposit'?'out':'in';
-      const s=tx.type==='deposit'?'−':'+';
-      return `<div class="tx-card">
-        <div class="tx-dot ${tx.type}">${icons[tx.type]}</div>
-        <div><div class="tx-type">${labels[tx.type]}</div><div class="tx-time">${timeAgo(tx.ts)}</div></div>
-        <div><div class="tx-eth ${amtCls}">${s}${tx.val.toFixed(4)} ETH</div><div class="tx-usd">${usd(tx.val)}</div></div>
-      </div>`;
-    }).join('');
-  }
+  if(!sorted.length){txList.innerHTML='<div class="empty-tx">No Tollan transactions found for this period.</div>';return;}
+  txList.innerHTML=sorted.slice(0,30).map(tx=>{
+    const amtCls=tx.type==='deposit'?'out':'in';const s=tx.type==='deposit'?'−':'+';
+    return'<div class="tx-card"><div class="tx-dot '+tx.type+'">'+icons[tx.type]+'</div><div><div class="tx-type">'+labels[tx.type]+'</div><div class="tx-time">'+timeAgo(tx.ts)+'</div></div><div><div class="tx-eth '+amtCls+'">'+s+tx.val.toFixed(4)+' ETH</div><div class="tx-usd">'+usd(tx.val)+'</div></div></div>';
+  }).join('');
 }
 
-async function analyze() {   const raw = document.getElementById('addrInput').value.trim();   if (!raw) return;   document.getElementById('analyzeBtn').disabled = true;   document.getElementById('loadingEl').style.display = 'block';   document.getElementById('resultsEl').style.display = 'none';   document.getElementById('errorBanner').style.display = 'none';    try {     await fetchEthPrice();     setLoadingText('Resolving address...');     const address = await resolveAddress(raw);     const addrLow = address.toLowerCase();      setLoadingText('Fetching deposits...');     const sentTxs = await fetchTransfers(address, 'sent');      setLoadingText('Fetching jackpots...');     const recvTxs = await fetchTransfers(address, 'received');      setLoadingText('Fetching leaderboard rewards...');     const rewardsRes = await fetch(`${BACKEND}?address=${address}&action=rewards`);     const rewardsJson = await rewardsRes.json();     const rewardsList = rewardsJson?.result || [];      allTxs = [];      for (const tx of sentTxs) {       const to = tx.to?.toLowerCase() || '';       const val = parseFloat(tx.value || 0);       if (val <= 0) continue;       if (to === C.DEPOSIT) allTxs.push({ type:'deposit', val, ts: tx.metadata?.blockTimestamp });     }      for (const tx of recvTxs) {       const from = tx.from?.toLowerCase() || '';       const val = parseFloat(tx.value || 0);       if (val <= 0) continue;       if (from === C.JACKPOT) allTxs.push({ type:'jackpot', val, ts: tx.metadata?.blockTimestamp });     }      for (const r of rewardsList) {       if (r.value > 0) allTxs.push({ type:'reward', val: r.value, ts: r.timestamp });     }      const isAGW = raw.includes('.');     document.getElementById('walletName').textContent = raw;     document.getElementById('walletAddr').textContent = isAGW ? address.slice(0,6)+'...'+address.slice(-4) : '';     document.getElementById('walletAddr').style.display = isAGW ? 'block' : 'none';      document.getElementById('loadingEl').style.display = 'none';     document.getElementById('resultsEl').style.display = 'block';     document.getElementById('analyzeBtn').disabled = false;     render(currentPeriod);    } catch(err) {     document.getElementById('loadingEl').style.display = 'none';     document.getElementById('resultsEl').style.display = 'block';     const eb = document.getElementById('errorBanner');     eb.style.display = 'block';     eb.textContent = '⚠️ Error: ' + err.message;     document.getElementById('analyzeBtn').disabled = false;   } }
+async function analyze(){
   const raw=document.getElementById('addrInput').value.trim();
-  if (!raw) return;
+  if(!raw)return;
   document.getElementById('analyzeBtn').disabled=true;
   document.getElementById('loadingEl').style.display='block';
   document.getElementById('resultsEl').style.display='none';
   document.getElementById('errorBanner').style.display='none';
-
-  try {
+  try{
     await fetchEthPrice();
-    setLoadingText('Resolving address...');
+    setTxt('Resolving address...');
     const address=await resolveAddress(raw);
-    const addrLow=address.toLowerCase();
-
-    setLoadingText('Fetching sent transactions...');
-    const sentTxs=await fetchTransfers(address,'sent');
-
-    setLoadingText('Fetching received transactions...');
+    setTxt('Fetching deposits & jackpots...');
+    const [sentTxs,rewardsList]=await Promise.all([fetchTransfers(address,'sent'),fetchTransfers(address,'rewards')]);
+    setTxt('Fetching received transactions...');
     const recvTxs=await fetchTransfers(address,'received');
-
-    setLoadingText('Computing your PnL...');
+    setTxt('Computing your PnL...');
     allTxs=[];
-
-    for (const tx of sentTxs) {
-      const to=tx.to?.toLowerCase()||'';
-      const val=parseFloat(tx.value||0);
-      if (val<=0) continue;
-      if (to===C.DEPOSIT) allTxs.push({type:'deposit',val,ts:tx.metadata?.blockTimestamp});
-    }
-
-    for (const tx of recvTxs) {
-      const from=tx.from?.toLowerCase()||'';
-      const val=parseFloat(tx.value||0);
-      if (val<=0) continue;
-      if (from===C.REWARDS) allTxs.push({type:'reward',val,ts:tx.metadata?.blockTimestamp});
-      else if (from===C.JACKPOT) allTxs.push({type:'jackpot',val,ts:tx.metadata?.blockTimestamp});
-    }
-
+    for(const tx of sentTxs){const to=tx.to?.toLowerCase()||'';const val=parseFloat(tx.value||0);if(val<=0)continue;if(to===C.DEPOSIT)allTxs.push({type:'deposit',val,ts:tx.metadata?.blockTimestamp});}
+    for(const tx of recvTxs){const from=tx.from?.toLowerCase()||'';const val=parseFloat(tx.value||0);if(val<=0)continue;if(from===C.JACKPOT)allTxs.push({type:'jackpot',val,ts:tx.metadata?.blockTimestamp});}
+    for(const r of rewardsList){if(r.value>0)allTxs.push({type:'reward',val:r.value,ts:r.timestamp});}
     const isAGW=raw.includes('.');
     document.getElementById('walletName').textContent=raw;
     document.getElementById('walletAddr').textContent=isAGW?address.slice(0,6)+'...'+address.slice(-4):'';
     document.getElementById('walletAddr').style.display=isAGW?'block':'none';
-
     document.getElementById('loadingEl').style.display='none';
     document.getElementById('resultsEl').style.display='block';
     document.getElementById('analyzeBtn').disabled=false;
     render(currentPeriod);
-
-  } catch(err) {
+  }catch(err){
     document.getElementById('loadingEl').style.display='none';
     document.getElementById('resultsEl').style.display='block';
-    const eb=document.getElementById('errorBanner');
-    eb.style.display='block';
-    eb.textContent='⚠️ Error: '+err.message;
+    const eb=document.getElementById('errorBanner');eb.style.display='block';eb.textContent='⚠️ Error: '+err.message;
     document.getElementById('analyzeBtn').disabled=false;
   }
 }
 
-function setPeriod(period,el) {
-  currentPeriod=period;
-  document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));
-  el.classList.add('active');
-  render(period);
-}
-
-function setLoadingText(t){document.getElementById('loadingText').textContent=t;}
-
-function copyTip() {
-  navigator.clipboard.writeText(TIP_ADDRESS).then(()=>{
-    const h=document.getElementById('copyHint');
-    h.textContent='✓ copied!';h.classList.add('copied');
-    setTimeout(()=>{h.textContent='click to copy';h.classList.remove('copied');},2000);
-  });
-}
-
+function setPeriod(p,el){currentPeriod=p;document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');render(p);}
+function setTxt(t){document.getElementById('loadingText').textContent=t;}
+function copyTip(){navigator.clipboard.writeText(TIP).then(()=>{const h=document.getElementById('copyHint');h.textContent='✓ copied!';h.classList.add('copied');setTimeout(()=>{h.textContent='click to copy';h.classList.remove('copied');},2000);});}
 document.getElementById('addrInput').addEventListener('keydown',e=>{if(e.key==='Enter')analyze();});
 </script>
 </body>
