@@ -215,125 +215,193 @@ footer a:hover{text-decoration:underline}
   </div>
   <div class="disclaimer">Data sourced live from Abstract chain · Chain ID 2741 · Not affiliated with Tollan Universe · Not financial advice</div>
 </div>
-<footer>
-  Tollan Universe PnL Tracker · Built by <a href="https://x.com/Not_Evayouk" target="_blank">@Evayouk</a> for the <a href="https://abs.xyz" target="_blank">Abstract</a> community · <a href="https://hub.tollan.io" target="_blank">Play Tollan Universe</a>
-</footer>
+<footer>Tollan Universe PnL Tracker · Built by <a href="https://x.com/Not_Evayouk" target="_blank">@Evayouk</a> for the <a href="https://abs.xyz" target="_blank">Abstract</a> community · <a href="https://hub.tollan.io" target="_blank">Play Tollan Universe</a></footer>
+
 <script>
-const C={DEPOSIT:'0xa688a6a53a26b6f0702a9a518482151415be1ff7',JACKPOT:'0x6f7cdd84dbc0f56f73651a7ee4a65ad7ab9241be'};
-const BACKEND='https://tollan-pnl-tracker.vercel.app/api/abscan';
-const TIP='0xDdA88b48eC478309daDC3A5E28c6f619183e797f';
-let ETH_PRICE=2335,allTxs=[],currentPeriod='all';
+const C = { JACKPOT: '0x6f7cdd84dbc0f56f73651a7ee4a65ad7ab9241be' };
+const BACKEND = 'https://tollan-pnl-tracker.vercel.app/api/abscan';
+const TIP = '0xDdA88b48eC478309daDC3A5E28c6f619183e797f';
+let ETH_PRICE = 2335, allTxs = [], currentPeriod = 'all';
 
-async function fetchEthPrice(){try{const r=await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');const j=await r.json();if(j.ethereum?.usd)ETH_PRICE=j.ethereum.usd;}catch(e){}}
+async function fetchEthPrice() {
+  try {
+    const r = await fetch('https://api.coingecko.com/api/v3/simple/price?ids=ethereum&vs_currencies=usd');
+    const j = await r.json();
+    if (j.ethereum?.usd) ETH_PRICE = j.ethereum.usd;
+  } catch(e) {}
+}
 
-async function resolveAddress(input){
-  if(input.startsWith('0x')&&input.length>=40)return input;
-  try{const name=input.replace('.agw','').toLowerCase();const r=await fetch('https://api.abs.xyz/v1/accounts?username='+encodeURIComponent(name));if(r.ok){const j=await r.json();if(j.address)return j.address;}}catch(e){}
+async function resolveAddress(input) {
+  if (input.startsWith('0x') && input.length >= 40) return input;
+  try {
+    const name = input.replace('.agw','').toLowerCase();
+    const r = await fetch('https://api.abs.xyz/v1/accounts?username=' + encodeURIComponent(name));
+    if (r.ok) { const j = await r.json(); if (j.address) return j.address; }
+  } catch(e) {}
   return input;
 }
 
-async function fetchTransfers(address,action){
-  const r=await fetch(BACKEND+'?address='+address+'&action='+action);
-  const j=await r.json();
-  if(action==='rewards')return j?.result||[];
-  async function fetchTransfers(address,action){
-  const r=await fetch(BACKEND+'?address='+address+'&action='+action);
-  const j=await r.json();
-  if(action==='rewards'||action==='sent')return j?.result||[];
-  return j?.result?.transfers||[];
+// Single fetchTransfers function - handles all action types
+async function fetchTransfers(address, action) {
+  const r = await fetch(BACKEND + '?address=' + address + '&action=' + action);
+  const j = await r.json();
+  // sent and rewards return {result: [...]}
+  // received returns {result: {transfers: [...]}}
+  if (action === 'sent' || action === 'rewards') return j?.result || [];
+  return j?.result?.transfers || [];
 }
 
-function inPeriod(ts,period){
-  if(period==='all'||!ts)return true;
-  const d=new Date(ts),now=new Date();
-  if(period==='week')return d>=new Date(now-7*24*3600*1000);
-  if(period==='month')return d.getMonth()===now.getMonth()&&d.getFullYear()===now.getFullYear();
+function inPeriod(ts, period) {
+  if (period === 'all' || !ts) return true;
+  const d = new Date(ts), now = new Date();
+  if (period === 'week') return d >= new Date(now - 7*24*3600*1000);
+  if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
   return true;
 }
 
-function timeAgo(ts){
-  if(!ts)return'—';
-  const diff=Math.floor((Date.now()-new Date(ts))/1000);
-  if(diff<60)return diff+'s ago';
-  if(diff<3600)return Math.floor(diff/60)+'m ago';
-  if(diff<86400)return Math.floor(diff/3600)+'h ago';
-  return Math.floor(diff/86400)+'d ago';
+function timeAgo(ts) {
+  if (!ts) return '—';
+  const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
+  if (diff < 60) return diff + 's ago';
+  if (diff < 3600) return Math.floor(diff/60) + 'm ago';
+  if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
+  return Math.floor(diff/86400) + 'd ago';
 }
 
-function usd(v){return'$'+(v*ETH_PRICE).toLocaleString('en-US',{minimumFractionDigits:2,maximumFractionDigits:2});}
+function usd(v) {
+  return '$' + (v * ETH_PRICE).toLocaleString('en-US', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
 
-function render(period){
-  const f=allTxs.filter(tx=>inPeriod(tx.ts,period));
+function render(period) {
+  const f = allTxs.filter(tx => inPeriod(tx.ts, period));
   let td=0,dc=0,tr=0,rc=0,tj=0,jc=0;
-  for(const tx of f){if(tx.type==='deposit'){td+=tx.val;dc++;}if(tx.type==='reward'){tr+=tx.val;rc++;}if(tx.type==='jackpot'){tj+=tx.val;jc++;}}
-  const net=parseFloat((tr+tj-td).toFixed(6));
-  const pct=td>0?parseFloat((net/td*100).toFixed(1)):0;
-  const sign=net>=0?'+':'';const cls=net>=0?'pos':'neg';
-  document.getElementById('totalDeposit').textContent=td.toFixed(4)+' ETH';
-  document.getElementById('totalDepositUsd').textContent=usd(td);
-  document.getElementById('depositCount').textContent=dc+' transaction'+(dc!==1?'s':'');
-  document.getElementById('totalRewards').textContent=tr.toFixed(4)+' ETH';
-  document.getElementById('totalRewardsUsd').textContent=usd(tr);
-  document.getElementById('rewardCount').textContent=rc+' weekly payout'+(rc!==1?'s':'');
-  document.getElementById('totalJackpots').textContent=tj.toFixed(4)+' ETH';
-  document.getElementById('totalJackpotsUsd').textContent=usd(tj);
-  document.getElementById('jackpotCount').textContent=jc+' chest'+(jc!==1?'s':'')+' claimed';
-  const pnlEl=document.getElementById('netPnl');
-  const pctEl=document.getElementById('netPnlPct');
-  pnlEl.textContent=sign+net.toFixed(4)+' ETH';pnlEl.className='pnl-value '+cls;
-  document.getElementById('netPnlUsd').textContent=sign+usd(Math.abs(net));
-  pctEl.textContent=sign+pct.toFixed(1)+'%';pctEl.className='pnl-pct '+cls;
-  const icons={deposit:'💎',reward:'🏆',jackpot:'🎰'};
-  const labels={deposit:'Deposit (Crowns/Pass/Badge)',reward:'Weekly Leaderboard Reward',jackpot:'Chest Jackpot Claimed'};
-  const sorted=[...f].sort((a,b)=>new Date(b.ts||0)-new Date(a.ts||0));
-  const txList=document.getElementById('txList');
-  if(!sorted.length){txList.innerHTML='<div class="empty-tx">No Tollan transactions found for this period.</div>';return;}
-  txList.innerHTML=sorted.slice(0,30).map(tx=>{
-    const amtCls=tx.type==='deposit'?'out':'in';const s=tx.type==='deposit'?'−':'+';
-    return'<div class="tx-card"><div class="tx-dot '+tx.type+'">'+icons[tx.type]+'</div><div><div class="tx-type">'+labels[tx.type]+'</div><div class="tx-time">'+timeAgo(tx.ts)+'</div></div><div><div class="tx-eth '+amtCls+'">'+s+tx.val.toFixed(4)+' ETH</div><div class="tx-usd">'+usd(tx.val)+'</div></div></div>';
+  for (const tx of f) {
+    if (tx.type==='deposit') { td+=tx.val; dc++; }
+    if (tx.type==='reward')  { tr+=tx.val; rc++; }
+    if (tx.type==='jackpot') { tj+=tx.val; jc++; }
+  }
+  const net = parseFloat((tr+tj-td).toFixed(6));
+  const pct = td > 0 ? parseFloat((net/td*100).toFixed(1)) : 0;
+  const sign = net >= 0 ? '+' : '';
+  const cls  = net >= 0 ? 'pos' : 'neg';
+
+  document.getElementById('totalDeposit').textContent    = td.toFixed(4)+' ETH';
+  document.getElementById('totalDepositUsd').textContent = usd(td);
+  document.getElementById('depositCount').textContent    = dc+' transaction'+(dc!==1?'s':'');
+  document.getElementById('totalRewards').textContent    = tr.toFixed(4)+' ETH';
+  document.getElementById('totalRewardsUsd').textContent = usd(tr);
+  document.getElementById('rewardCount').textContent     = rc+' weekly payout'+(rc!==1?'s':'');
+  document.getElementById('totalJackpots').textContent   = tj.toFixed(4)+' ETH';
+  document.getElementById('totalJackpotsUsd').textContent= usd(tj);
+  document.getElementById('jackpotCount').textContent    = jc+' chest'+(jc!==1?'s':'')+' claimed';
+
+  const pnlEl = document.getElementById('netPnl');
+  const pctEl = document.getElementById('netPnlPct');
+  pnlEl.textContent = sign+net.toFixed(4)+' ETH';
+  pnlEl.className   = 'pnl-value '+cls;
+  document.getElementById('netPnlUsd').textContent = sign+usd(Math.abs(net));
+  pctEl.textContent = sign+pct.toFixed(1)+'%';
+  pctEl.className   = 'pnl-pct '+cls;
+
+  const icons  = { deposit:'💎', reward:'🏆', jackpot:'🎰' };
+  const labels = { deposit:'Deposit (Crowns/Pass/Badge)', reward:'Weekly Leaderboard Reward', jackpot:'Chest Jackpot Claimed' };
+  const sorted = [...f].sort((a,b) => new Date(b.ts||0) - new Date(a.ts||0));
+  const txList = document.getElementById('txList');
+
+  if (!sorted.length) {
+    txList.innerHTML = '<div class="empty-tx">No Tollan transactions found for this period.</div>';
+    return;
+  }
+  txList.innerHTML = sorted.slice(0,30).map(tx => {
+    const amtCls = tx.type==='deposit' ? 'out' : 'in';
+    const s = tx.type==='deposit' ? '−' : '+';
+    return '<div class="tx-card"><div class="tx-dot '+tx.type+'">'+icons[tx.type]+'</div><div><div class="tx-type">'+labels[tx.type]+'</div><div class="tx-time">'+timeAgo(tx.ts)+'</div></div><div><div class="tx-eth '+amtCls+'">'+s+tx.val.toFixed(4)+' ETH</div><div class="tx-usd">'+usd(tx.val)+'</div></div></div>';
   }).join('');
 }
 
-async function analyze(){
-  const raw=document.getElementById('addrInput').value.trim();
-  if(!raw)return;
-  document.getElementById('analyzeBtn').disabled=true;
-  document.getElementById('loadingEl').style.display='block';
-  document.getElementById('resultsEl').style.display='none';
-  document.getElementById('errorBanner').style.display='none';
-  try{
+async function analyze() {
+  const raw = document.getElementById('addrInput').value.trim();
+  if (!raw) return;
+  document.getElementById('analyzeBtn').disabled = true;
+  document.getElementById('loadingEl').style.display   = 'block';
+  document.getElementById('resultsEl').style.display   = 'none';
+  document.getElementById('errorBanner').style.display = 'none';
+
+  try {
     await fetchEthPrice();
     setTxt('Resolving address...');
-    const address=await resolveAddress(raw);
-    setTxt('Fetching deposits & jackpots...');
-    const [sentTxs,rewardsList]=await Promise.all([fetchTransfers(address,'sent'),fetchTransfers(address,'rewards')]);
-    setTxt('Fetching received transactions...');
-    const recvTxs=await fetchTransfers(address,'received');
+    const address = await resolveAddress(raw);
+
+    setTxt('Fetching deposits...');
+    const sentTxs = await fetchTransfers(address, 'sent');
+
+    setTxt('Fetching leaderboard rewards...');
+    const rewardsList = await fetchTransfers(address, 'rewards');
+
+    setTxt('Fetching chest jackpots...');
+    const recvTxs = await fetchTransfers(address, 'received');
+
     setTxt('Computing your PnL...');
-    allTxs=[];
-    for(const tx of sentTxs){const val=parseFloat(tx.value||0);if(val<=0)continue;allTxs.push({type:'deposit',val,ts:tx.timestamp});}
-    for(const tx of recvTxs){const from=tx.from?.toLowerCase()||'';const val=parseFloat(tx.value||0);if(val<=0)continue;if(from===C.JACKPOT)allTxs.push({type:'jackpot',val,ts:tx.metadata?.blockTimestamp});}
-    for(const r of rewardsList){if(r.value>0)allTxs.push({type:'reward',val:r.value,ts:r.timestamp});}
-    const isAGW=raw.includes('.');
-    document.getElementById('walletName').textContent=raw;
-    document.getElementById('walletAddr').textContent=isAGW?address.slice(0,6)+'...'+address.slice(-4):'';
-    document.getElementById('walletAddr').style.display=isAGW?'block':'none';
-    document.getElementById('loadingEl').style.display='none';
-    document.getElementById('resultsEl').style.display='block';
-    document.getElementById('analyzeBtn').disabled=false;
+    allTxs = [];
+
+    // Deposits
+    for (const tx of sentTxs) {
+      const val = parseFloat(tx.value || 0);
+      if (val <= 0) continue;
+      allTxs.push({ type:'deposit', val, ts: tx.timestamp });
+    }
+
+    // Jackpots
+    for (const tx of recvTxs) {
+      const from = tx.from?.toLowerCase() || '';
+      const val  = parseFloat(tx.value || 0);
+      if (val <= 0) continue;
+      if (from === C.JACKPOT) allTxs.push({ type:'jackpot', val, ts: tx.metadata?.blockTimestamp });
+    }
+
+    // Rewards
+    for (const r of rewardsList) {
+      if (r.value > 0) allTxs.push({ type:'reward', val: r.value, ts: r.timestamp });
+    }
+
+    const isAGW = raw.includes('.');
+    document.getElementById('walletName').textContent = raw;
+    document.getElementById('walletAddr').textContent   = isAGW ? address.slice(0,6)+'...'+address.slice(-4) : '';
+    document.getElementById('walletAddr').style.display = isAGW ? 'block' : 'none';
+
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('resultsEl').style.display = 'block';
+    document.getElementById('analyzeBtn').disabled = false;
     render(currentPeriod);
-  }catch(err){
-    document.getElementById('loadingEl').style.display='none';
-    document.getElementById('resultsEl').style.display='block';
-    const eb=document.getElementById('errorBanner');eb.style.display='block';eb.textContent='⚠️ Error: '+err.message;
-    document.getElementById('analyzeBtn').disabled=false;
+
+  } catch(err) {
+    document.getElementById('loadingEl').style.display = 'none';
+    document.getElementById('resultsEl').style.display = 'block';
+    const eb = document.getElementById('errorBanner');
+    eb.style.display = 'block';
+    eb.textContent = '⚠️ Error: ' + err.message;
+    document.getElementById('analyzeBtn').disabled = false;
   }
 }
 
-function setPeriod(p,el){currentPeriod=p;document.querySelectorAll('.period-btn').forEach(b=>b.classList.remove('active'));el.classList.add('active');render(p);}
-function setTxt(t){document.getElementById('loadingText').textContent=t;}
-function copyTip(){navigator.clipboard.writeText(TIP).then(()=>{const h=document.getElementById('copyHint');h.textContent='✓ copied!';h.classList.add('copied');setTimeout(()=>{h.textContent='click to copy';h.classList.remove('copied');},2000);});}
-document.getElementById('addrInput').addEventListener('keydown',e=>{if(e.key==='Enter')analyze();});
+function setPeriod(p, el) {
+  currentPeriod = p;
+  document.querySelectorAll('.period-btn').forEach(b => b.classList.remove('active'));
+  el.classList.add('active');
+  render(p);
+}
+
+function setTxt(t) { document.getElementById('loadingText').textContent = t; }
+
+function copyTip() {
+  navigator.clipboard.writeText(TIP).then(() => {
+    const h = document.getElementById('copyHint');
+    h.textContent = '✓ copied!'; h.classList.add('copied');
+    setTimeout(() => { h.textContent='click to copy'; h.classList.remove('copied'); }, 2000);
+  });
+}
+
+document.getElementById('addrInput').addEventListener('keydown', e => { if(e.key==='Enter') analyze(); });
 </script>
 </body>
 </html>
