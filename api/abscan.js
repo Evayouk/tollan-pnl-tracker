@@ -3,14 +3,14 @@ export default async function handler(req, res) {
   const { address, action } = req.query;
   const RPC = 'https://abstract-mainnet.g.alchemy.com/v2/qIG1PwQv9zTyyCproxF02';
 
-  const isReceived = action === 'received';
+  const isSent = action === 'sent';
   const body = {
     id: 1, jsonrpc: '2.0',
     method: 'alchemy_getAssetTransfers',
     params: [{
       fromBlock: '0x0',
       toBlock: 'latest',
-      ...(isReceived ? { toAddress: address } : { fromAddress: address }),
+      ...(isSent ? { fromAddress: address } : { toAddress: address }),
       category: ['external'],
       withMetadata: true,
       excludeZeroValue: true,
