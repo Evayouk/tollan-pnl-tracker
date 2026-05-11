@@ -1,36 +1,25 @@
 export default async function handler(req, res) {
   res.setHeader('Access-Control-Allow-Origin', '*');
   const { address, action } = req.query;
-  const ALCHEMY = 'https://abstract-mainnet.g.alchemy.com/v2/qIG1PwQv9zTyyCproxF02';
-  const MORALIS_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJub25jZSI6IjQ2NmI0ZWMzLTg1MzAtNDY0Yy1hMTllLWM3MDZkZWY3ZDhkNyIsIm9yZ0lkIjoiNTE1MTk3IiwidXNlcklkIjoiNTMwMTM5IiwidHlwZUlkIjoiYzY4ZWEyMGYtNzhhNy00ZmRhLThhYzYtOGUxYWExM2MwYmI2IiwidHlwZSI6IlBST0pFQ1QiLCJpYXQiOjE3Nzg0OTc3NTQsImV4cCI6NDkzNDI1Nzc1NH0.niDzizzjQyrXo5CgZiw1UKnG-DPYLZQ03A3QuUNxpvo';
+  const ALCHEMY   = 'https://abstract-mainnet.g.alchemy.com/v2/qIG1PwQv9zTyyCproxF02';
+  const ABSCAN_KEY = 'SHMKKK45WQQ398P5IV8YAAF1WTNY6EZ67M';
 
   try {
     if (action === 'rewards') {
-      // Moralis supports internal transactions!
-      const url = `https://deep-index.moralis.io/api/v2.2/${address}/verbose?chain=0xab5&limit=100&order=DESC`;
-      const r = await fetch(url, {
-        headers: {
-          'X-API-Key': MORALIS_KEY,
-          'accept': 'application/json'
-        }
-      });
+      const url = `https://api.abscan.org/api?module=account&action=txlistinternal&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${ABSCAN_KEY}&chainid=2741`;
+      const r = await fetch(url);
       const data = await r.json();
       
-      // Filter internal transfers from rewards contract
       const REWARDS = '0x3e3645a8f76c0436739b1cd6262d8b64afa90941'.toLowerCase();
       const results = [];
       
       for (const tx of (data.result || [])) {
-        for (const internal of (tx.internal_transactions || [])) {
-          if (internal.from?.toLowerCase() === REWARDS &&
-              internal.to?.toLowerCase() === address.toLowerCase() &&
-              internal.value && internal.value !== '0') {
-            results.push({
-              value: parseInt(internal.value) / 1e18,
-              timestamp: tx.block_timestamp,
-              hash: tx.hash
-            });
-          }
+        if (tx.from?.toLowerCase() === REWARDS && parseInt(tx.value) > 0) {
+          results.push({
+            value: parseInt(tx.value) / 1e18,
+            timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(),
+            hash: tx.hash
+          });
         }
       }
       res.status(200).json({ result: results });
