@@ -21,20 +21,14 @@ export default async function handler(req, res) {
       res.status(200).json({ result: results });
 
     } else if (action === 'sent') {
-      // Fetch BOTH normal txs AND internal txs, look for deposits to Tollan
-      const [r1, r2] = await Promise.all([
-        fetch(`${ETHERSCAN}?chainid=2741&module=account&action=txlist&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${APIKEY}`),
-        fetch(`${ETHERSCAN}?chainid=2741&module=account&action=txlistinternal&address=${address}&startblock=0&endblock=99999999&sort=desc&apikey=${APIKEY}`)
-      ]);
-      const [d1, d2] = await Promise.all([r1.json(), r2.json()]);
+      // Search internal txs FROM the Tollan deposit contract, filter by wallet address
+      const url = `${ETHERSCAN}?chainid=2741&module=account&action=txlistinternal&address=${DEPOSIT}&startblock=0&endblock=99999999&sort=desc&apikey=${APIKEY}`;
+      const r = await fetch(url);
+      const data = await r.json();
       const results = [];
-      const seen = new Set();
-
-      for (const tx of [...(d1.result || []), ...(d2.result || [])]) {
-        const key = tx.hash + tx.value;
-        if (seen.has(key)) continue;
-        seen.add(key);
-        if (tx.to?.toLowerCase() === DEPOSIT && parseInt(tx.value) >= 6900000000000000) {
+      const addrLow = address.toLowerCase();
+      for (const tx of (data.result || [])) {
+        if (tx.from?.toLowerCase() === addrLow && parseInt(tx.value) >= 6900000000000000) {
           results.push({ value: parseInt(tx.value) / 1e18, timestamp: new Date(parseInt(tx.timeStamp) * 1000).toISOString(), hash: tx.hash });
         }
       }
