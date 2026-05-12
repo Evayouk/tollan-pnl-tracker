@@ -369,7 +369,7 @@ async function analyze() {
       const from = tx.from?.toLowerCase() || '';
       const val  = parseFloat(tx.value || 0);
       if (val <= 0) continue;
-      if (from === C.JACKPOT) allTxs.push({ type:'jackpot', val, ts: tx.metadata?.blockTimestamp });
+      if (from === C.JACKPOT) allTxs.push({ type:'jackpot', val, ts: tx.metadata?.blockTimestamp || tx.blockTimestamp || tx.timestamp || null });
     }
 
     for (const r of rewardsList) {
