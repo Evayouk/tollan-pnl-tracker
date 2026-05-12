@@ -213,7 +213,7 @@ footer a:hover{text-decoration:underline}
       <div class="tip-copy-hint" id="copyHint">click to copy</div>
     </div>
   </div>
-  <div class="disclaimer">Data sourced live from Abstract chain · Chain ID 2741 · Not affiliated with Tollan Universe · Not financial advice</div>
+  <div class="disclaimer">Data sourced live from Abstract chain · Chain ID 2741 · Not affiliated with Tollan Universe or Abstract Team · Not financial advice</div>
 </div>
 <footer>Tollan Universe PnL Tracker · Built by <a href="https://x.com/Not_Evayouk" target="_blank">@Evayouk</a> for the <a href="https://abs.xyz" target="_blank">Abstract</a> community · <a href="https://hub.tollan.io" target="_blank">Play Tollan Universe</a></footer>
 
@@ -241,20 +241,31 @@ async function resolveAddress(input) {
   return input;
 }
 
-// Single fetchTransfers function - handles all action types
 async function fetchTransfers(address, action) {
   const r = await fetch(BACKEND + '?address=' + address + '&action=' + action);
   const j = await r.json();
-  // sent and rewards return {result: [...]}
-  // received returns {result: {transfers: [...]}}
   if (action === 'sent' || action === 'rewards') return j?.result || [];
   return j?.result?.transfers || [];
 }
 
+// Normalize any timestamp to a JS Date object
+function toDate(ts) {
+  if (!ts) return null;
+  // Already ISO string
+  if (typeof ts === 'string' && ts.includes('T')) return new Date(ts);
+  // Unix timestamp in seconds
+  if (typeof ts === 'number' || (typeof ts === 'string' && !isNaN(ts))) {
+    const n = parseInt(ts);
+    // If > year 2100 in ms, it's already ms
+    return new Date(n > 4102444800 ? n : n * 1000);
+  }
+  return new Date(ts);
+}
+
 function inPeriod(ts, period) {
-  if (period === 'all' || !ts) return true;
-  const d = new Date(ts);
-  if (isNaN(d.getTime())) return false;
+  if (period === 'all') return true;
+  const d = toDate(ts);
+  if (!d || isNaN(d.getTime())) return true; // if no date, show in all periods
   const now = new Date();
   if (period === 'week') return d >= new Date(now - 7*24*3600*1000);
   if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
@@ -262,8 +273,9 @@ function inPeriod(ts, period) {
 }
 
 function timeAgo(ts) {
-  if (!ts) return '—';
-  const diff = Math.floor((Date.now() - new Date(ts)) / 1000);
+  const d = toDate(ts);
+  if (!d || isNaN(d.getTime())) return '—';
+  const diff = Math.floor((Date.now() - d) / 1000);
   if (diff < 60) return diff + 's ago';
   if (diff < 3600) return Math.floor(diff/60) + 'm ago';
   if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
@@ -307,7 +319,7 @@ function render(period) {
 
   const icons  = { deposit:'💎', reward:'🏆', jackpot:'🎰' };
   const labels = { deposit:'Deposit (Crowns/Pass/Badge)', reward:'Weekly Leaderboard Reward', jackpot:'Chest Jackpot Claimed' };
-  const sorted = [...f].sort((a,b) => new Date(b.ts||0) - new Date(a.ts||0));
+  const sorted = [...f].sort((a,b) => (toDate(b.ts)||0) - (toDate(a.ts)||0));
   const txList = document.getElementById('txList');
 
   if (!sorted.length) {
@@ -346,14 +358,12 @@ async function analyze() {
     setTxt('Computing your PnL...');
     allTxs = [];
 
-    // Deposits
     for (const tx of sentTxs) {
       const val = parseFloat(tx.value || 0);
       if (val <= 0) continue;
-      allTxs.push({ type:'deposit', val, ts: tx.timestamp ? new Date(tx.timestamp).toISOString() : null });
+      allTxs.push({ type:'deposit', val, ts: tx.timestamp });
     }
 
-    // Jackpots
     for (const tx of recvTxs) {
       const from = tx.from?.toLowerCase() || '';
       const val  = parseFloat(tx.value || 0);
@@ -361,7 +371,6 @@ async function analyze() {
       if (from === C.JACKPOT) allTxs.push({ type:'jackpot', val, ts: tx.metadata?.blockTimestamp });
     }
 
-    // Rewards
     for (const r of rewardsList) {
       if (r.value > 0) allTxs.push({ type:'reward', val: r.value, ts: r.timestamp });
     }
