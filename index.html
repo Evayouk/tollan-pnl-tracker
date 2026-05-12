@@ -248,34 +248,35 @@ async function fetchTransfers(address, action) {
   return j?.result?.transfers || [];
 }
 
-// Normalize any timestamp to a JS Date object
-function toDate(ts) {
+// Convert any timestamp format to ms
+function toMs(ts) {
   if (!ts) return null;
-  // Already ISO string
-  if (typeof ts === 'string' && ts.includes('T')) return new Date(ts);
-  // Unix timestamp in seconds
-  if (typeof ts === 'number' || (typeof ts === 'string' && !isNaN(ts))) {
+  if (typeof ts === 'number') return ts > 1e12 ? ts : ts * 1000;
+  if (typeof ts === 'string') {
+    if (ts.includes('T') || ts.includes('-')) return new Date(ts).getTime();
     const n = parseInt(ts);
-    // If > year 2100 in ms, it's already ms
-    return new Date(n > 4102444800 ? n : n * 1000);
+    return n > 1e12 ? n : n * 1000;
   }
-  return new Date(ts);
+  return null;
 }
 
 function inPeriod(ts, period) {
   if (period === 'all') return true;
-  const d = toDate(ts);
-  if (!d || isNaN(d.getTime())) return true; // if no date, show in all periods
-  const now = new Date();
-  if (period === 'week') return d >= new Date(now - 7*24*3600*1000);
-  if (period === 'month') return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+  const ms = toMs(ts);
+  if (!ms || isNaN(ms)) return false;
+  const now = Date.now();
+  if (period === 'week') return ms >= now - 7*24*3600*1000;
+  if (period === 'month') {
+    const d = new Date(ms), n = new Date();
+    return d.getMonth() === n.getMonth() && d.getFullYear() === n.getFullYear();
+  }
   return true;
 }
 
 function timeAgo(ts) {
-  const d = toDate(ts);
-  if (!d || isNaN(d.getTime())) return '—';
-  const diff = Math.floor((Date.now() - d) / 1000);
+  const ms = toMs(ts);
+  if (!ms || isNaN(ms)) return '—';
+  const diff = Math.floor((Date.now() - ms) / 1000);
   if (diff < 60) return diff + 's ago';
   if (diff < 3600) return Math.floor(diff/60) + 'm ago';
   if (diff < 86400) return Math.floor(diff/3600) + 'h ago';
@@ -319,7 +320,7 @@ function render(period) {
 
   const icons  = { deposit:'💎', reward:'🏆', jackpot:'🎰' };
   const labels = { deposit:'Deposit (Crowns/Pass/Badge)', reward:'Weekly Leaderboard Reward', jackpot:'Chest Jackpot Claimed' };
-  const sorted = [...f].sort((a,b) => (toDate(b.ts)||0) - (toDate(a.ts)||0));
+  const sorted = [...f].sort((a,b) => (toMs(b.ts)||0) - (toMs(a.ts)||0));
   const txList = document.getElementById('txList');
 
   if (!sorted.length) {
